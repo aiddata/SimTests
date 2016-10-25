@@ -25,6 +25,9 @@ record.dataframe <- data.frame(n.points=round(runif(iterations,min=500,max=500))
                                abs.error.lm = NA,
                                abs.error.matchit = NA,
                                abs.error.geoMatch = NA,
+                               mean.error.lm = NA,
+                               mean.error.matchit = NA,
+                               mean.error.geoMatch = NA,
                                true.T.ie = NA)
 for(i in 1:iterations)
   {
@@ -57,9 +60,13 @@ for(i in 1:iterations)
     matchit.model <- lm(Y ~ T + X, data=match.data(it.Match))
     geo.model <- lm(Y_adjusted ~ T + X, data=match.data(it.geoMatch))
 
-    record.dataframe["abs.error.lm"][i,] <- mean((lm.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill))
-    record.dataframe["abs.error.matchit"][i,] <- mean((matchit.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill))
-    record.dataframe["abs.error.geoMatch"][i,] <- mean((geo.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill))
+    record.dataframe["mean.error.lm"][i,] <- mean((lm.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill))
+    record.dataframe["mean.error.matchit"][i,] <- mean((matchit.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill))
+    record.dataframe["mean.error.geoMatch"][i,] <- mean((geo.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill))
+    
+    record.dataframe["abs.error.lm"][i,] <- mean(abs((lm.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill)))
+    record.dataframe["abs.error.matchit"][i,] <- mean(abs((matchit.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill)))
+    record.dataframe["abs.error.geoMatch"][i,] <- mean(abs((geo.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill)))
     
     
     record.dataframe["est.T.lm"][i,] <- lm.model$coefficients["T"]
@@ -71,7 +78,9 @@ for(i in 1:iterations)
 
 
 
-plot(record.dataframe$avg.spill, 
+
+
+plot(ylim=c(-10,10),record.dataframe$avg.spill, 
      record.dataframe$abs.error.geoMatch, 
      col=rgb(1,0,0,alpha=0.5), pch=3, cex=0.5,
      main="Relative absolute error in Treatment Estimates",
