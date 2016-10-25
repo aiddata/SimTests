@@ -11,17 +11,20 @@ source("spatial.simulation.R")
 #sim.Y.e - Error multiplier. Random values between min(y) and max(Y) multiplied by this are added to Y in a second stage.
 #t.Thresh - number of nearby cases that contribute to spillover averaging.
 #spill.mag - Multiplier on spillover effect
-test <- spatial.simulation(n.points = 500, 
-                           cov.Decay = 750, se.Decay = 500, t.Decay = 500,
+example <- spatial.simulation(n.points = 500, 
+                           cov.Decay = 1, se.Decay = 1, t.Decay = 1,
                            sim.T.e=0.0, 
-                           T.percent = 0.15,
+                           T.percent = 0.25,
                            sim.Y.scale = 0.0,
                            Theta = 1.0,
                            sim.Y.cov.effect = 0.1,
                            sim.Y.het.effect = 0.0,
                            sim.Y.e = 0.0,
                            t.Thresh = 10,
-                           spill.mag = 0.5)
+                           spill.mag = 0.0)
 
 
+
+spplot(example, z=c("T"))
+spplot(example, z=c("Y"))
 

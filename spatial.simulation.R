@@ -11,13 +11,12 @@ spatial.simulation <- function(n.points,
                                sim.Y.cov.effect,
                                sim.Y.het.effect,
                                sim.Y.e,
-                               t.Thresh,
                                spill.mag)
 {
  
   #generate random coordinates
-  random.longitude <- runif(n.points, -5.0, 5.0)
-  random.latitude <- runif(n.points, -5.0, 5.0)
+  random.longitude <- runif(n.points, -1.0, 1.0)
+  random.latitude <- runif(n.points, -1.0, 1.0)
   
   # create dataframe
   spdf <- data.frame(id = 1:n.points,
@@ -100,22 +99,23 @@ spatial.simulation <- function(n.points,
   ct.dists <- spDists(x=spdf[spdf@data$T == 0,], y=spdf[spdf@data$T == 1,])
   for (i in 1:length(spdf[spdf@data$T == 0,]))
   {
-
-     t.weights <- 1-(((3/2) * (ct.dists[i,] / t.Decay) - (1/2) * (ct.dists[i,] / t.Decay)^3))
-     
+     t.weights <- (( (3/2) * (ct.dists[i,] / t.Decay) - (1/2) * (ct.dists[i,] / t.Decay)^3))
      #select t.Thresh closest observations; ties are included (so total can exceed this value).
-     max.t.dist <- max(head(sort(ct.dists[i,]), t.Thresh))
-     closest.vector <- (ct.dists[i,] <= max.t.dist)
-     
-     spdf@data[spdf@data$T == 0,][i,]["t.spill"] <- mean(t.weights[closest.vector] * t.vals[closest.vector,]) * spill.mag
-    
+     #max.t.dist <- max(head(sort(ct.dists[i,]), t.Thresh))
+     #closest.vector <- (ct.dists[i,] <= t.Decay)
+     t.weights[t.weights < 0] <- 0
+     spdf@data[spdf@data$T == 0,][i,]["t.spill"] <- sum(t.weights * t.vals) * spill.mag
+
   }
   
-
+  #Cap the spillover effect to be as strong as the primary effect
+  #spdf@data$t.spill[spdf@data$t.spill > Theta] <- Theta
+  
   #Final impact estimate is generated, including spillover effects:
   spdf@data$ie.spill <- spdf@data$t.spill + spdf@data$ie.nospill
   
-  
+  #Spillover in T is added to Y in a first-order spillover
+  spdf@data$Y <- spdf@data$Y + spdf@data$t.spill
   
   return(spdf)
 }
