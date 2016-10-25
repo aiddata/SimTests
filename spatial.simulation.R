@@ -104,7 +104,7 @@ spatial.simulation <- function(n.points,
      #max.t.dist <- max(head(sort(ct.dists[i,]), t.Thresh))
      #closest.vector <- (ct.dists[i,] <= t.Decay)
      t.weights[t.weights < 0] <- 0
-     spdf@data[spdf@data$T == 0,][i,]["t.spill"] <- sum(t.weights * t.vals) * spill.mag
+     spdf@data[spdf@data$T == 0,][i,]["t.spill"] <- mean(t.weights * t.vals) * spill.mag
 
   }
   
