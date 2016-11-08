@@ -1,22 +1,23 @@
+#SciClone Edition
 library(devtools)
-install_local('/home/aiddata/Desktop/Github/geoMatch')
+install_github('itpir/geoMatch')
 library(geoMatch)
 
-source("spatial.simulation.R")
+source("/sciclone/home00/geogdan/geoMatch_testing/SimTests/spatial.simulation.R")
 
-iterations <- 4
+iterations <- 1
 
-record.dataframe <- data.frame(n.points=round(runif(iterations,min=500,max=500)),
-                               cov.Decay = runif(iterations, min=25, max=25),
-                               se.Decay = runif(iterations, min=1, max=1),
-                               t.Decay = runif(iterations, min=0, max=50),
+record.dataframe <- data.frame(n.points=round(runif(iterations,min=200,max=200)),
+                               cov.Decay = runif(iterations, min=0.01, max=50.0),
+                               se.Decay = runif(iterations, min=0.01, max=0.01),
+                               t.Decay = runif(iterations, min=0.01, max=50),
                                sim.T.e = runif(iterations, min=0.0, max=0.0),
-                               T.percent = runif(iterations, min=0.10, max=0.10),
+                               T.percent = runif(iterations, min=0.1, max=0.5),
                                sim.Y.scale = runif(iterations, min=0.0, max=0.0),
                                Theta = runif(iterations, min=1.0, max=1.0),
                                sim.Y.cov.effect = runif(iterations, min=0.0, max=0.0),
-                               sim.Y.het.effect = runif(iterations, min=0.0, max=0.0),
-                               sim.Y.e = runif(iterations, min=0.0, max=0.0),
+                               sim.Y.het.effect = runif(iterations, min=1.0, max=1.0),
+                               sim.Y.e = runif(iterations, min=0.0, max=1.0),
                                spill.mag = runif(iterations, min=0.0, max=1.0),
                                avg.spill = NA,
                                est.T.lm = NA,
@@ -28,7 +29,8 @@ record.dataframe <- data.frame(n.points=round(runif(iterations,min=500,max=500))
                                mean.error.lm = NA,
                                mean.error.matchit = NA,
                                mean.error.geoMatch = NA,
-                               true.T.ie = NA)
+                               true.T.ie = NA,
+                               converge = NA)
 for(i in 1:iterations)
   {
     print(i)
@@ -51,6 +53,9 @@ for(i in 1:iterations)
              outcome.variable="Y", 
              outcome.suffix="_adjusted")
     
+    record.dataframe$converge <- it.geoMatch$optim
+
+    
     it.Match <- matchit(T ~ X, 
                         method = "nearest", 
                         caliper=0.25, 
@@ -60,13 +65,13 @@ for(i in 1:iterations)
     matchit.model <- lm(Y ~ T + X, data=match.data(it.Match))
     geo.model <- lm(Y_adjusted ~ T + X, data=match.data(it.geoMatch))
 
-    record.dataframe["mean.error.lm"][i,] <- mean((lm.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill))
-    record.dataframe["mean.error.matchit"][i,] <- mean((matchit.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill))
-    record.dataframe["mean.error.geoMatch"][i,] <- mean((geo.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill))
+    record.dataframe["mean.error.lm"][i,] <- mean((lm.model$coefficients["T"] - mean(it.spdf@data[it.spdf@data$T == 1,]["ie.spill"][[1]])))
+    record.dataframe["mean.error.matchit"][i,] <- mean((matchit.model$coefficients["T"] - mean(it.spdf@data[it.spdf@data$T == 1,]["ie.spill"][[1]])))
+    record.dataframe["mean.error.geoMatch"][i,] <- mean((geo.model$coefficients["T"] - mean(it.spdf@data[it.spdf@data$T == 1,]["ie.spill"][[1]])))
     
-    record.dataframe["abs.error.lm"][i,] <- mean(abs((lm.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill)))
-    record.dataframe["abs.error.matchit"][i,] <- mean(abs((matchit.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill)))
-    record.dataframe["abs.error.geoMatch"][i,] <- mean(abs((geo.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]$ie.spill)))
+    record.dataframe["abs.error.lm"][i,] <- mean(abs((lm.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]["ie.spill"][[1]])))
+    record.dataframe["abs.error.matchit"][i,] <- mean(abs((matchit.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]["ie.spill"][[1]])))
+    record.dataframe["abs.error.geoMatch"][i,] <- mean(abs((geo.model$coefficients["T"] - it.spdf@data[it.spdf@data$T == 1,]["ie.spill"][[1]])))
     
     
     record.dataframe["est.T.lm"][i,] <- lm.model$coefficients["T"]
@@ -76,37 +81,4 @@ for(i in 1:iterations)
     record.dataframe["avg.spill"][i,] <- mean(it.spdf@data[it.spdf@data$T == 0,]["t.spill"][[1]])
 }
 
-
-
-
-
-plot(ylim=c(-10,10),record.dataframe$avg.spill, 
-     record.dataframe$abs.error.geoMatch, 
-     col=rgb(1,0,0,alpha=0.5), pch=3, cex=0.5,
-     main="Relative absolute error in Treatment Estimates",
-     ylab="Error",
-     xlab="Spillover")
-
-lines(lowess(record.dataframe$avg.spill, 
-             record.dataframe$abs.error.geoMatch), 
-              col=rgb(1,0,0), pch=3)
-
-lines(lowess(record.dataframe$avg.spill, 
-             record.dataframe$abs.error.matchit), 
-              col=rgb(0,0,1), pch=4)
-points(record.dataframe$avg.spill, 
-       record.dataframe$abs.error.matchit, 
-       col=rgb(0,0,1,alpha=0.5), pch=4, cex=0.5)
-
-lines(lowess(record.dataframe$avg.spill, 
-             record.dataframe$abs.error.lm), 
-              col=rgb(0,1,0), pch=4)
-points(record.dataframe$avg.spill, 
-       record.dataframe$abs.error.lm, 
-       col=rgb(0,1,0,alpha=0.5), pch=4, cex=0.5)
-
-legend("bottomright",
-       cex = 0.65,
-       legend=c("geoMatch","Baseline LM", "Baseline MatchIt"), 
-       pch=c(pch = 3, pch=4, pch=4),
-       col=c(col="red", col="green", col="blue"), title = "Legend")
+write.csv(record.dataframe, paste('/sciclone/home00/geogdan/geoMatch_testing/Results/out_',date(),runif(1),'.csv',sep=""))

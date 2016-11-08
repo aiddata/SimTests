@@ -78,12 +78,13 @@ spatial.simulation <- function(n.points,
     (Theta * spdf@data$T) + 
     (sim.Y.cov.effect * spdf@data$X) +
     (sim.Y.het.effect * (spdf@data$T * spdf@data$X))
+
   
 
   spdf@data$Y <- spdf@data$Y + runif(n.points, 
                                 min(spdf@data$Y),
-                                max(spdf@data$Y)) * sim.Y.e
-  
+                                max(spdf@data$Y)) 
+
   #For each unit of observation Ti = 1, the total effect (Theta + sim.Y.het.effect)
   #is calculated.  
   
@@ -104,15 +105,16 @@ spatial.simulation <- function(n.points,
      #max.t.dist <- max(head(sort(ct.dists[i,]), t.Thresh))
      #closest.vector <- (ct.dists[i,] <= t.Decay)
      t.weights[t.weights < 0] <- 0
-     spdf@data[spdf@data$T == 0,][i,]["t.spill"] <- mean(t.weights * t.vals) * spill.mag
+     m.cal <- (t.weights * t.vals)
+     spdf@data[spdf@data$T == 0,][i,]["t.spill"] <- sum(m.cal[[1]]) * spill.mag
 
   }
-  
+
   #Cap the spillover effect to be as strong as the primary effect
   #spdf@data$t.spill[spdf@data$t.spill > Theta] <- Theta
   
   #Final impact estimate is generated, including spillover effects:
-  spdf@data$ie.spill <- spdf@data$t.spill + spdf@data$ie.nospill
+  spdf@data$ie.spill <- (spdf@data$t.spill + spdf@data$ie.nospill) * sim.Y.e
   
   #Spillover in T is added to Y in a first-order spillover
   spdf@data$Y <- spdf@data$Y + spdf@data$t.spill
