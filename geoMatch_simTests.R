@@ -51,7 +51,8 @@ for(i in 1:iterations)
              caliper=0.25, 
              data = it.spdf, 
              outcome.variable="Y", 
-             outcome.suffix="_adjusted")
+             outcome.suffix="_adjusted",
+             max.it=50)
     
     record.dataframe$converge <- it.geoMatch$optim
 
