@@ -101,20 +101,18 @@ spatial.simulation <- function(n.points,
   for (i in 1:length(spdf[spdf@data$T == 0,]))
   {
      t.weights <- (( (3/2) * (ct.dists[i,] / t.Decay) - (1/2) * (ct.dists[i,] / t.Decay)^3))
-     #select t.Thresh closest observations; ties are included (so total can exceed this value).
-     #max.t.dist <- max(head(sort(ct.dists[i,]), t.Thresh))
-     #closest.vector <- (ct.dists[i,] <= t.Decay)
      t.weights[t.weights < 0] <- 0
      m.cal <- (t.weights * t.vals)
-     spdf@data[spdf@data$T == 0,][i,]["t.spill"] <- sum(m.cal[[1]]) * spill.mag
+     spdf@data[spdf@data$T == 0,][i,]["t.spill"] <- mean(m.cal[[1]]) * spill.mag
 
   }
 
   #Cap the spillover effect to be as strong as the primary effect
-  #spdf@data$t.spill[spdf@data$t.spill > Theta] <- Theta
+  spdf@data$t.spill[spdf@data$t.spill > Theta] <- Theta
   
   #Final impact estimate is generated, including spillover effects:
-  spdf@data$ie.spill <- (spdf@data$t.spill + spdf@data$ie.nospill) * sim.Y.e
+  spdf@data$ie.spill <- (spdf@data$t.spill + spdf@data$ie.nospill) + ((spdf@data$t.spill + spdf@data$ie.nospill) * sim.Y.e)
+  
   
   #Spillover in T is added to Y in a first-order spillover
   spdf@data$Y <- spdf@data$Y + spdf@data$t.spill

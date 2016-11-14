@@ -10,7 +10,7 @@ name = MPI.Get_processor_name()
 
 sim_path = '/sciclone/home00/geogdan/geoMatch_testing/SimTests/geoMatch_simTests.R'
 
-iterations = 1000
+iterations = 64
 
 for c in range(0,size):
 	if rank == c:

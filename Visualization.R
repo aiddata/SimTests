@@ -19,7 +19,7 @@ for(i in 1:iterations)
 
 
 
-plot(xlim=c(0,2),ylim=c(0,5),record.dataframe$avg.spill, 
+plot(xlim=c(0,3),ylim=c(0,3),record.dataframe$avg.spill, 
      record.dataframe$abs.error.geoMatch, 
      col=rgb(1,0,0,alpha=0.5), pch=3, cex=0.5,
      main="Absolute error in Treatment Estimates",
